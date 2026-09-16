@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Content;
+using System;
 
 namespace AngularDynamicsExercise;
 
@@ -10,10 +11,18 @@ namespace AngularDynamicsExercise;
 /// </summary>
 public class ShipSprite
 {
-    public Game game;
-    public Texture2D texture;
-    public Vector2 position;
-    public Vector2 velocity;
+    const float LINEAR_ACCELERATION = 10;
+    const float ANGULAR_ACCELERATION =5;
+
+    Game game;
+    Texture2D texture;
+    Vector2 position;
+    Vector2 velocity;
+    Vector2 direction;
+
+     float angle;
+     float angularVelocity;
+     
 
     /// <summary>
     /// Creates the ship sprite
@@ -22,6 +31,7 @@ public class ShipSprite
     {
         this.game = game;
         this.position = new Vector2(375, 250);
+        this.direction = -Vector2.UnitY;
     }
 
     /// <summary>
@@ -48,6 +58,40 @@ public class ShipSprite
         if (position.Y > viewport.Height) position.Y = 0;
         if (position.X < 0) position.X = viewport.Width;
         if (position.X > viewport.Width) position.X = 0;
+
+        float angularAcceleration = 0;
+        Vector2 acceleration = new Vector2(0, 0);
+        if (keyboardState.IsKeyDown(Keys.Left))
+        {
+            acceleration += direction * LINEAR_ACCELERATION;
+           /* 
+            Vector2 r = new Vector2(30,39);
+            Vector2 force = new Vector2(0,0.1f);
+            float torque = force.X * r.Y + force.Y * r.X;
+            angularAcceleration += torque; //use the torque equation for more accurate angular acceleration, otherwise you could just use a constant
+            */
+            angularAcceleration += ANGULAR_ACCELERATION; 
+        }
+        if (keyboardState.IsKeyDown(Keys.Right))
+        {
+            acceleration += direction * LINEAR_ACCELERATION;
+            /*
+            Vector2 r = new Vector2(-30,39);
+            Vector2 force = new Vector2(0,0.1f);
+            float torque = force.X * r.Y + force.Y * r.X;
+            angularAcceleration += torque;
+            */
+            angularAcceleration -= ANGULAR_ACCELERATION; 
+        }
+
+        angularVelocity += angularAcceleration * t;
+        angle += angularVelocity * t;
+
+        velocity += acceleration * t;
+        position += velocity * t;
+
+        direction.X = (float)Math.Sin(angle);
+        direction.Y = (float)-Math.Cos(angle);
     }
 
     /// <summary>
@@ -57,7 +101,7 @@ public class ShipSprite
     /// <param name="spriteBatch">The SpriteBatch to draw with</param>
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
-        spriteBatch.Draw(texture, position, Color.White);
+        spriteBatch.Draw(texture, position, null, Color.White, angle, new Vector2(30,39), 1f, SpriteEffects.None, 0);
     }
 }
 
